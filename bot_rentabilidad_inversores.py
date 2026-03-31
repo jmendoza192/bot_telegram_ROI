@@ -1,4 +1,4 @@
-"""
+ """
 🏠 Bot Analizador de Rentabilidad para Inversores CLOU v.Final
 Plataforma: Telegram
 Versión personalizada para Jancarlo Inmobiliario
@@ -13,6 +13,7 @@ from telegram.ext import (
 import logging
 import os
 import math
+import asyncio
 
 # ==========================================
 # CONFIGURACIÓN
@@ -274,6 +275,7 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         
         await update.message.reply_text(respuesta_parte1, parse_mode='Markdown')
+        await asyncio.sleep(0.5)
         
         # MENSAJE 12: Resultado - PARTE 2 (Análisis de rentabilidad)
         estado_roi = "❌ NO RENTABLE" if resultado['roi'] < 0 else "✅ RENTABLE"
@@ -282,7 +284,7 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"💡 *ANÁLISIS DE RENTABILIDAD:*\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"Inicial requerida (20%): *{formato_moneda(resultado['inicial'])}*\n"
-            f"Préstamo: *{formato_moneda(resultado['prestamo'])}\n"
+            f"Préstamo: *{formato_moneda(resultado['prestamo'])}*\n"
             f"\n"
             f"Ingresos anuales: *{formato_moneda(resultado['alquiler_anual'])}*\n"
             f"Cuota anual: *{formato_moneda(resultado['cuota_anual'])}*\n"
@@ -293,6 +295,7 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         
         await update.message.reply_text(respuesta_parte2, parse_mode='Markdown')
+        await asyncio.sleep(0.5)
         
         # MENSAJE 13: Tabla comparativa con diferentes precios
         precios_escenarios = [300000, 350000, 400000, 450000, 500000]
@@ -310,6 +313,7 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 respuesta_parte3 += f"Precio {formato_moneda(p)} → ROI: {formato_porcentaje(resultado_escenario['roi'])} {estado}\n"
         
         await update.message.reply_text(respuesta_parte3, parse_mode='Markdown')
+        await asyncio.sleep(0.5)
         
         # MENSAJE 14: Consideraciones importantes
         await update.message.reply_text(
@@ -321,6 +325,7 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "💡 A mayor plazo, menor cuota mensual pero más intereses pagados.",
             parse_mode='Markdown'
         )
+        await asyncio.sleep(0.5)
         
         # MENSAJE 15: Información referencial
         await update.message.reply_text(
@@ -328,11 +333,13 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "entonces necesitas una *asesoría personalizada de inversión*. 📞 Puedes agendarla al Whatsapp 📲 920605559 o al siguiente link:",
             parse_mode='Markdown'
         )
+        await asyncio.sleep(0.5)
         
         # MENSAJE 16: Link de WhatsApp
         await update.message.reply_text(
             "https://wa.link/cck1bk"
         )
+        await asyncio.sleep(0.5)
         
         # MENSAJE 17: Opción de nuevo cálculo
         await update.message.reply_text(
