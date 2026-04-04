@@ -1,4 +1,4 @@
- """
+"""
 🏠 Bot Analizador de Rentabilidad para Inversores CLOU v.Final
 Plataforma: Telegram
 Versión personalizada para Jancarlo Inmobiliario
@@ -297,8 +297,31 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(respuesta_parte2, parse_mode='Markdown')
         await asyncio.sleep(0.5)
         
-        # MENSAJE 13: Tabla comparativa con diferentes precios
-        precios_escenarios = [300000, 350000, 400000, 450000, 500000]
+        # MENSAJE 13: Tabla comparativa (5 precios diferentes, ordenados por ROI)
+        # Generar 5 precios alrededor del precio ingresado
+        precio_base_calc = int(precio)
+        diferencia = 25000
+        
+        precios_lista = [
+            precio_base_calc - (diferencia * 2),
+            precio_base_calc - diferencia,
+            precio_base_calc,
+            precio_base_calc + diferencia,
+            precio_base_calc + (diferencia * 2)
+        ]
+        
+        # Calcular ROI para cada precio
+        resultados_precios = []
+        for p in precios_lista:
+            resultado_p = calcular_rentabilidad(p, alquiler, tcea, plazo)
+            if resultado_p:
+                resultados_precios.append({
+                    'precio': p,
+                    'roi': resultado_p['roi']
+                })
+        
+        # Ordenar por ROI descendente
+        resultados_precios.sort(key=lambda x: x['roi'], reverse=True)
         
         respuesta_parte3 = (
             f"📊 *ESCENARIOS CON DIFERENTES PRECIOS:*\n"
@@ -306,11 +329,10 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         )
         
-        for p in precios_escenarios:
-            resultado_escenario = calcular_rentabilidad(p, alquiler, tcea, plazo)
-            if resultado_escenario:
-                estado = "❌" if resultado_escenario['roi'] < 0 else "✅"
-                respuesta_parte3 += f"Precio {formato_moneda(p)} → ROI: {formato_porcentaje(resultado_escenario['roi'])} {estado}\n"
+        for item in resultados_precios:
+            estado = "❌" if item['roi'] < 0 else "✅"
+            marca_base = " ← Tu opción" if item['precio'] == precio_base_calc else ""
+            respuesta_parte3 += f"Precio {formato_moneda(item['precio'])} → ROI: {formato_porcentaje(item['roi'])} {estado}{marca_base}\n"
         
         await update.message.reply_text(respuesta_parte3, parse_mode='Markdown')
         await asyncio.sleep(0.5)
