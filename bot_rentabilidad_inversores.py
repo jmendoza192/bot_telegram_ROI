@@ -128,7 +128,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # MENSAJE 3: Propósito
     await update.message.reply_text(
-        "Mi meta es ayudarte a analizar la *rentabilidad* de tu inversión inmobiliaria. "
+        "Mi meta es ayudarte a calcular la *rentabilidad* de tus alquileres. "
         "Con *4 preguntas simples*, sabrás exactamente cuál será tu ROI anual considerando el financiamiento.\n\n"
         "Esto te permitirá tomar decisiones de inversión inteligentes y maximizar tus ganancias.\n\n"
         "*¿Empezamos?*",
@@ -262,9 +262,9 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("❌ Error en el cálculo. Por favor intenta de nuevo.")
             return PLAZO
         
-        # MENSAJE 11: Resultado - PARTE 1 (Datos principales)
+        # MENSAJE 11: Resultado - PARTE 1 (Datos a analizar)
         respuesta_parte1 = (
-            f"📌 *RESULTADO DE TU ANÁLISIS DE RENTABILIDAD*\n"
+            f"📌 *DATOS A ANALIZAR*\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"• Precio del depa: *{formato_moneda(int(precio))}*\n"
             f"• Alquiler mensual: *{formato_moneda(int(alquiler))}*\n"
@@ -281,12 +281,12 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         estado_roi = "❌ NO RENTABLE" if resultado['roi'] < 0 else "✅ RENTABLE"
         
         respuesta_parte2 = (
-            f"💡 *ANÁLISIS DE RENTABILIDAD:*\n"
+            f"📌 *RESULTADO DE TU ANÁLISIS DE RENTABILIDAD*\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"Inicial requerida (20%): *{formato_moneda(resultado['inicial'])}*\n"
             f"Préstamo: *{formato_moneda(resultado['prestamo'])}*\n"
             f"\n"
-            f"Ingresos anuales: *{formato_moneda(resultado['alquiler_anual'])}*\n"
+            f"Alquiler anual: *{formato_moneda(resultado['alquiler_anual'])}*\n"
             f"Cuota anual: *{formato_moneda(resultado['cuota_anual'])}*\n"
             f"Gastos anuales (3%): *{formato_moneda(int(resultado['gastos_anuales']))}*\n"
             f"\n"
@@ -297,17 +297,19 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(respuesta_parte2, parse_mode='Markdown')
         await asyncio.sleep(0.5)
         
-        # MENSAJE 13: Tabla comparativa (5 precios diferentes, ordenados por ROI)
-        # Generar 5 precios alrededor del precio ingresado
+        # MENSAJE 13: Tabla comparativa (5 precios múltiplos de 25,000, ordenados por ROI)
         precio_base_calc = int(precio)
-        diferencia = 25000
         
+        # Redondear precio a múltiplo de 25,000 más cercano
+        precio_redondeado = round(precio_base_calc / 25000) * 25000
+        
+        # Generar 5 precios (2 abajo, el base, 2 arriba) todos múltiplos de 25,000
         precios_lista = [
-            precio_base_calc - (diferencia * 2),
-            precio_base_calc - diferencia,
-            precio_base_calc,
-            precio_base_calc + diferencia,
-            precio_base_calc + (diferencia * 2)
+            precio_redondeado - 50000,
+            precio_redondeado - 25000,
+            precio_redondeado,
+            precio_redondeado + 25000,
+            precio_redondeado + 50000
         ]
         
         # Calcular ROI para cada precio
@@ -324,14 +326,14 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         resultados_precios.sort(key=lambda x: x['roi'], reverse=True)
         
         respuesta_parte3 = (
-            f"📊 *ESCENARIOS CON DIFERENTES PRECIOS:*\n"
+            f"📊 *SENSIBILIDAD DE ROI RESPECTO DEL PRECIO:*\n"
             f"(Mismo alquiler: {formato_moneda(int(alquiler))}/mes)\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         )
         
         for item in resultados_precios:
             estado = "❌" if item['roi'] < 0 else "✅"
-            marca_base = " ← Tu opción" if item['precio'] == precio_base_calc else ""
+            marca_base = " ← Tu opción" if item['precio'] == precio_redondeado else ""
             respuesta_parte3 += f"Precio {formato_moneda(item['precio'])} → ROI: {formato_porcentaje(item['roi'])} {estado}{marca_base}\n"
         
         await update.message.reply_text(respuesta_parte3, parse_mode='Markdown')
@@ -359,7 +361,7 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # MENSAJE 16: Link de WhatsApp
         await update.message.reply_text(
-            "https://wa.link/cck1bk"
+            "https://wa.link/27rnng"
         )
         await asyncio.sleep(0.5)
         
