@@ -87,6 +87,7 @@ def calcular_rentabilidad(precio, alquiler_mensual, tcea, plazo_anos):
     
     return {
         "inicial": inicial,
+        "prestamo": resultado_cuota['prestamo'],
         "cuota_mensual": cuota_mensual,
         "cuota_anual": int(round(cuota_anual)),
         "alquiler_anual": int(round(alquiler_anual)),
