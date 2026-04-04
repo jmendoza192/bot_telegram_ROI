@@ -298,17 +298,16 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await asyncio.sleep(0.5)
         
         # MENSAJE 13: Tabla comparativa (5 precios múltiplos de 25,000, ordenados por ROI)
+        await update.message.reply_text("⏳ Calculando sensibilidad...")
+        await asyncio.sleep(0.3)
+        
         try:
             precio_base_calc = int(precio)
             
             # Redondear precio a múltiplo de 25,000 más cercano
-            precio_redondeado = round(precio_base_calc / 25000) * 25000
+            precio_redondeado = max(25000, round(precio_base_calc / 25000) * 25000)
             
-            # Asegurar que no sea negativo
-            if precio_redondeado < 25000:
-                precio_redondeado = 25000
-            
-            # Generar 5 precios (2 abajo, el base, 2 arriba) todos múltiplos de 25,000
+            # Generar 5 precios simples
             precios_lista = [
                 precio_redondeado - 50000,
                 precio_redondeado - 25000,
@@ -317,18 +316,26 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 precio_redondeado + 50000
             ]
             
-            # Filtrar precios negativos
+            # Filtrar precios válidos (mayores a 0)
             precios_lista = [p for p in precios_lista if p > 0]
             
             # Calcular ROI para cada precio
             resultados_precios = []
             for p in precios_lista:
-                resultado_p = calcular_rentabilidad(p, alquiler, tcea, plazo)
-                if resultado_p:
-                    resultados_precios.append({
-                        'precio': p,
-                        'roi': resultado_p['roi']
-                    })
+                try:
+                    resultado_p = calcular_rentabilidad(p, alquiler, tcea, plazo)
+                    if resultado_p:
+                        resultados_precios.append({
+                            'precio': p,
+                            'roi': resultado_p['roi']
+                        })
+                except Exception as e:
+                    logger.error(f"Error calculando rentabilidad para precio {p}: {e}")
+                    continue
+            
+            if not resultados_precios:
+                await update.message.reply_text("❌ Error al calcular sensibilidad de precios.")
+                return PLAZO
             
             # Ordenar por ROI descendente
             resultados_precios.sort(key=lambda x: x['roi'], reverse=True)
@@ -346,9 +353,10 @@ async def obtener_plazo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             await update.message.reply_text(respuesta_parte3, parse_mode='Markdown')
             await asyncio.sleep(0.5)
+            
         except Exception as e:
             logger.error(f"Error en cálculo de sensibilidad: {e}")
-            await update.message.reply_text("❌ Error en el cálculo de sensibilidad.")
+            await update.message.reply_text(f"❌ Error en el cálculo: {str(e)}")
             return PLAZO
         
         # MENSAJE 14: Consideraciones importantes
